@@ -13,4 +13,4 @@ queries::
 
 3. create table dir_table(dir_id INT PRIMARY KEY, owner_id INT, group_id INT, FOREIGN KEY (owner_id) REFERENCES dropbox_users(user_id), FOREIGN KEY (group_id) REFERENCES user_group(group_id));
 
-4. create table file_table(file_id INT PRIMARY KEY, dir_id INT, owner_id INT, name varchar(200), type varchar(50), content LONGBLOB);
+4. create table file_table(file_id INT AUTO_INCREMENT PRIMARY KEY, dir_id INT, owner_id INT, name varchar(200), type varchar(50), content LONGBLOB);

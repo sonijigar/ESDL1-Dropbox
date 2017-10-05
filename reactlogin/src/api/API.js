@@ -11,6 +11,7 @@ export const doSignUp = (payload) =>
             ...headers,
             'Content-Type':'application/json'
         },
+        credentials:'include',
         body:JSON.stringify(payload)
     }).then(res => {
         return res.status;
@@ -27,6 +28,7 @@ export const doWelcome = (payload) =>
             ...headers,
             'Content-Type': 'application/json'
         },
+        credentials:'include',
         body: JSON.stringify(payload)
     }).then(res => {
         return res.status;
@@ -42,6 +44,7 @@ export const doLogin = (payload) =>
             ...headers,
             'Content-Type': 'application/json'
         },
+        credentials:'include',
         body: JSON.stringify(payload)
     }).then(res => {
         return res.status;

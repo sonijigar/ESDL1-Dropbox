@@ -1,54 +1,122 @@
 var mysql = require('mysql');
 
-function getConnection(){
-    var connection = mysql.createConnection({
-        host     : 'localhost',
-        user     : 'root',
-        password : 'toor',
-        database : 'test',
-        port	 : '3306'
-    });
-    return connection;
-}
+var pool = mysql.createPool({
+    connectionLimit : 10,
+    host    :'localhost',
+    user    :'root',
+    password:'toor',
+    database:'test',
+    port    :'3306',
+    debug   :false
+});
+
+//module.exports = pool;
+// function getConnection(){
+//     var connection = mysql.createConnection({
+//         host     : 'localhost',
+//         user     : 'root',
+//         password : 'toor',
+//         database : 'test',
+//         port	 : '3306'
+//     });
+//     return connection;
+// }
 
 function fetchData(callback,sqlQuery){
 
     console.log("\nSQL Query::"+sqlQuery);
 
-    var connection=getConnection();
+    //var connection=getConnection();
 
-    connection.query(sqlQuery, function(err, rows, fields) {
+    pool.getConnection(function(err, connection){
         if(err){
-            console.log("ERROR: " + err.message);
+            connection.release();
+            throw err;
         }
-        else
-        {	// return err or result
-            console.log("DB Results:"+rows);
-            callback(err, rows);
-        }
+        connection.query(sqlQuery, function(err, rows, fields) {
+            connection.release();
+            if(err){
+                console.log("ERROR: " + err.message);
+            }
+            else
+            {	// return err or result
+                console.log("DB Results:"+rows);
+                callback(err, rows);
+            }
+        });
+        connection.on('error', function(err){
+            throw err;
+            return;
+        });
     });
-    console.log("\nConnection closed..");
-    connection.end();
+
+    // connection.query(sqlQuery, function(err, rows, fields) {
+    //     if(err){
+    //         console.log("ERROR: " + err.message);
+    //     }
+    //     else
+    //     {	// return err or result
+    //         console.log("DB Results:"+rows);
+    //         callback(err, rows);
+    //     }
+    // });
+    // console.log("\nConnection closed..");
+    // connection.end();
 }
 
 function insertData(callback,sqlData){
 
-    var connection=getConnection();
+    //var connection=getConnection();
 
-    // connection.query('INSERT INTO users SET ?',sqlData, function(err, rows, fields) {
-    connection.query(sqlData, function(err, rows, fields) {
+    pool.getConnection(function(err,connection){
         if(err){
-            console.log("ERROR: " + err.message);
+            connection.release();
+            throw err;
         }
-        else
-        {	// return err or result
-            console.log("DB insertion successful:"+rows);
-            callback(err,"yes");
-        }
+        connection.query(sqlData, function(err, rows, fields) {
+            connection.release();
+            if(err){
+                console.log("ERROR: " + err.message);
+            }
+            else
+            {	// return err or result
+                console.log("DB insertion successful:"+rows);
+                callback(err,"yes");
+            }
+        });
+        connection.on('error',function(err){
+            throw err;
+            return;
+        });
     });
+    // connection.query('INSERT INTO users SET ?',sqlData, function(err, rows, fields) {
+    // connection.query(sqlData, function(err, rows, fields) {
+    //     if(err){
+    //         console.log("ERROR: " + err.message);
+    //     }
+    //     else
+    //     {	// return err or result
+    //         console.log("DB insertion successful:"+rows);
+    //         callback(err,"yes");
+    //     }
+    // });
     console.log("\nConnection closed..");
     connection.end();
 }
 
+function addFileToDb(name, content, type, ownerId){
+    var addFile = "insert into file_table( dir_id, owner_id, name, type, content) values ('1','"+ownerId+"','"+name+"','"+type+"','"+content+"')";
+    insertData(function(err,results){
+        if(err){
+            throw err;
+        }
+        else
+        {
+            colsole.log("Insertion error");
+        }
+    },addFile);
+}
+
+exports.addFileToDb = addFileToDb;
 exports.fetchData=fetchData;
 exports.insertData=insertData;
