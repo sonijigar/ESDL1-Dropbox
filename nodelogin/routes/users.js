@@ -31,7 +31,7 @@ router.get('/', function (req, res, next) {
 
 router.post('/doWelcome', function(req, res, next){
     if(req.session && req.session.user){
-        var getUser = "select * from dropbox_users where firstname ='" + req.session.user[0].firstname +"'";
+        var getUser = "select * from dropbox_users where email ='" + req.session.user[0].email +"'";
         mysql.fetchData(function(err,results){
             if(err){
                 req.session.destroy();
@@ -143,7 +143,7 @@ router.post('/doLogin', function (req, res, next) {
                     res.status(201).json({message: "Login successful"});
 
                 }
-                console.log("something wrong");
+                // console.log("something wrong");
             }
             else{
                 req.session.destroy();
