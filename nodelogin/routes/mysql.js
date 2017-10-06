@@ -100,8 +100,8 @@ function insertData(callback,sqlData){
     //         callback(err,"yes");
     //     }
     // });
-    console.log("\nConnection closed..");
-    connection.end();
+    // console.log("\nConnection closed..");
+    // connection.end();
 }
 
 function addFileToDb(name, content, type, ownerId){

@@ -91,7 +91,7 @@ router.post('/doSignUp', function (req, res, next) {
         else
         {
             if(results.length > 0){
-                req.session.user = user;
+                req.session.user = results;
                 res.status(201).json({message:"Signup successful"});
             }
             else{
@@ -104,7 +104,7 @@ router.post('/doSignUp', function (req, res, next) {
 
 router.post('/doLogin', function (req, res, next) {
 
-    var reqUsername = req.body.username;
+    var reqEmail = req.body.email;
     var reqPassword = req.body.password;
 
     var genRandom = (length) => {
@@ -123,10 +123,9 @@ router.post('/doLogin', function (req, res, next) {
         };
     };
 
-    var salt = genRandom(16);
-    var password = sha512(reqPassword, salt);
 
-    var getUser = "select * from dropbox_users where firstname ='" + reqUsername + "' and password ='"+password.passwordHash+"'";
+
+    var getUser = "select * from dropbox_users where email ='" + reqEmail +"'";
 
     mysql.fetchData(function(err,results){
         if(err){
@@ -134,14 +133,20 @@ router.post('/doLogin', function (req, res, next) {
         }
         else
         {
-            if(results.length > 0){
+            if(results.length > 0) {
+                var salt = results[0].salt;
+                var password = sha512(reqPassword, salt);
 
-                req.session.user = results;
-                delete req.session.user[0].password;
-                res.status(201).json({message:"Login successful"});
+                if (results[0].password == password.passwordHash) {
+                    req.session.user = results;
+                    delete req.session.user[0].password;
+                    res.status(201).json({message: "Login successful"});
+
+                }
+                console.log("something wrong");
             }
             else{
-                req.session.reset();
+                req.session.destroy();
                 res.status(401).json({message: "Login failed"});
             }
         }
