@@ -5,6 +5,7 @@ var crypto = require('crypto');
 var session = require('client-sessions');
 var app = express();
 var fs = require('fs');
+const uuidv4 = require('uuid/v4');
 var storage = multer.diskStorage({
     destination: function (req, file, callback){
         callback(null, './uploads');
@@ -66,8 +67,9 @@ router.post('/createdir', function(req, res, next){
 router.post('/sharedir', function(req, res, next){
     if(req.session && req.session.user){
         reqData = req.body;
-        var shrdir = "insert into user_group(group_id, owner_id, permission)  values ('"+req.session.user[0].user_id+"','2')";
-        var grpId ;
+        var grpId = uuidv4();
+        var shrdir = "insert into user_group(group_id, owner_id, permission)  values ('"+grpId+"','"+req.session.user[0].user_id+"','2')";
+
 
         var values = [];
         console.log(reqData.length);
@@ -83,7 +85,7 @@ router.post('/sharedir', function(req, res, next){
             //     grpId = results.insertId
             //     console.log(results.insertId);
             // }
-            grpId = results.insertId;
+            //grpId = results.insertId;
             for(var i=0; i<reqData.length; i++){
                 values.push([grpId, reqData[i].userId, '1']);
             }

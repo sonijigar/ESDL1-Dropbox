@@ -70,7 +70,7 @@ function sqlGroup(callback, values){
             connection.release();
             throw err;
         }
-        connection.query('INSERT INTO user_group (group_id, owner_id, permission) VALUES ?', values, function(err,row, fields) {
+        connection.query('INSERT INTO user_group (group_id, owner_id, permission) VALUES ?', [values], function(err,row, fields) {
             connection.release();
             if(err) {
                 console.log(values);
@@ -135,7 +135,7 @@ function addFileToDb(name, content, type, ownerId){
         }
         else
         {
-            colsole.log("Insertion error");
+            console.log("Insertion succcessful");
         }
     },addFile);
 }
