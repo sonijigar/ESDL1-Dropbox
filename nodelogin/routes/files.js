@@ -64,9 +64,11 @@ router.post('/createdir', function(req, res, next){
     }
 });
 
+
+
 router.post('/sharedir', function(req, res, next){
     if(req.session && req.session.user){
-        reqData = req.body;
+        reqData = req.body.arr;
         var grpId = uuidv4();
         var shrdir = "insert into user_group(group_id, owner_id, permission)  values ('"+grpId+"','"+req.session.user[0].user_id+"','2')";
 
@@ -90,8 +92,20 @@ router.post('/sharedir', function(req, res, next){
                         values.push([grpId, res[i].user_id, '1']);
                     }
                     console.log(values);
-                    mysql.sqlGroup(function(err, res){
+                    mysql.sqlGroup(function(err, resp){
                         console.log("kool");
+                        var reqName = req.body.name;
+                        var reqParent = req.body.parentId;
+                        if(!reqParent){
+                            var createdir = " insert into dir_table(owner_id, group_id, name) values('"+req.session.user[0].user_id+"','"+grpId+"','"+reqName+"')";
+                        }
+                        else{
+                            var createdir = " insert into dir_table(owner_id, group_id, parent_id, name) values('"+req.session.user[0].user_id+"','"+grpId+"','"+reqParent+"','"+reqName+"')";
+
+                        }
+                        mysql.fetchData(function(err, ress){
+                            console.log("done");
+                        }, createdir);
                         }, values)
                 }, shrdir);
 
