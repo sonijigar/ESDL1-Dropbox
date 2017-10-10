@@ -63,7 +63,30 @@ function fetchData(callback,sqlQuery){
     // console.log("\nConnection closed..");
     // connection.end();
 }
+function sqlGetUser(callback, values) {
+    pool.getConnection(function(err, connection){
+        if(err){
+            connection.release();
+            throw err;
+        }
+        connection.query('Select user_id from dropbox_users where email in (?)', [values], function (err, res) {
+            connection.release();
+            if(err) {
+                console.log(values);
+            }
+            else {
+                console.log('Success');
+                console.log(values);
+                callback(err,res);
+            }
+        });
+        connection.on('error',function(err){
+            throw err;
+            return;
+    });
 
+});
+}
 function sqlGroup(callback, values){
     pool.getConnection(function (err, connection) {
         if(err){
@@ -144,3 +167,4 @@ exports.addFileToDb = addFileToDb;
 exports.fetchData=fetchData;
 exports.insertData=insertData;
 exports.sqlGroup=sqlGroup;
+exports.sqlGetUser = sqlGetUser;

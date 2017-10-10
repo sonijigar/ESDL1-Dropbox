@@ -70,30 +70,51 @@ router.post('/sharedir', function(req, res, next){
         var grpId = uuidv4();
         var shrdir = "insert into user_group(group_id, owner_id, permission)  values ('"+grpId+"','"+req.session.user[0].user_id+"','2')";
 
-
+        var val = [];
         var values = [];
         console.log(reqData.length);
         // for(var i=0; i<reqData.length; i++){
         //     values.push([grpId, reqData[i].userId]);
         // }
         // console.log(values);
-        mysql.fetchData(function(err, results){
-            // if(err){
-            //     console.log("something wrong");
-            // }
-            // else{
-            //     grpId = results.insertId
-            //     console.log(results.insertId);
-            // }
-            //grpId = results.insertId;
-            for(var i=0; i<reqData.length; i++){
-                values.push([grpId, reqData[i].userId, '1']);
-            }
-            console.log(values);
-            mysql.sqlGroup(function(err, res){
-                console.log("kool");
-            }, values)
-        },shrdir);
+
+        //mysql.fetchData(function(err, results){
+            for(var i=0; i<reqData.length; i++)
+                val.push([reqData[i].email]);
+
+            mysql.sqlGetUser(function (err, res) {
+                console.log("barobar");
+                console.log(res);
+                mysql.fetchData(function (err, results) {
+                    for(var i=0; i<res.length; i++){
+                        values.push([grpId, res[i].user_id, '1']);
+                    }
+                    console.log(values);
+                    mysql.sqlGroup(function(err, res){
+                        console.log("kool");
+                        }, values)
+                }, shrdir);
+
+            }, val);
+
+        // mysql.fetchData(function(err, results){    -----------------<
+        //     // if(err){
+        //     //     console.log("something wrong");
+        //     // }
+        //     // else{
+        //     //     grpId = results.insertId
+        //     //     console.log(results.insertId);
+        //     // }
+        //     //grpId = results.insertId;
+        //     for(var i=0; i<reqData.length; i++){
+        //         values.push([grpId, reqData[i].userId, '1']);
+        //     }
+        //     console.log(values);
+        //     mysql.sqlGroup(function(err, res){
+        //         console.log("kool");
+        //     }, values)
+        // },shrdir);------------------------------------------->>
+
 
         //var sharedir = "insert into user_group(group_id, user_id, permission) values ?"
         // mysql.sqlGroup(function(err, results){
