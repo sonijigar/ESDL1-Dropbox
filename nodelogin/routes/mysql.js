@@ -150,11 +150,13 @@ function insertData(callback,sqlData){
     // connection.end();
 }
 
-function addFileToDb(name, content, type, ownerId){
-    var addFile = "insert into file_table( dir_id, owner_id, name, type, content) values ('1','"+ownerId+"','"+name+"','"+type+"','"+content+"')";
+function addFileToDb(dir, name, content, type, ownerId){
+    console.log("Insertion succcessful");
+    var addFile = "insert into file_table( dir_id, owner_id, name, type, content) values ('"+dir+"','"+ownerId+"','"+name+"','"+type+"','"+content+"')";
     insertData(function(err,results){
         if(err){
             throw err;
+            console.log("Insertionl");
         }
         else
         {

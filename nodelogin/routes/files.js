@@ -13,8 +13,15 @@ var storage = multer.diskStorage({
     filename: function (req, file, callback) {
         callback(null, req.session.user[0].user_id + '-'+ file.originalname);
         var path = './uploads'+ req.session.user[0].user_id + '-'+ file.originalname;
-        var type = file.originalname.split(".")
-        mysql.addFileToDb(file.originalname, path, type[type.length-1], req.session.user[0].user_id);
+        var type = file.originalname.split(".");
+        console.log(req.param('dirId'));
+        console.log("hey");
+        if(req.param('dirId')== null){
+            mysql.addFileToDb( 1, file.originalname, path, type[type.length - 1], req.session.user[0].user_id);
+        }
+        else {
+            mysql.addFileToDb(req.param('dirId'), file.originalname, path, type[type.length - 1], req.session.user[0].user_id);
+        }
     }
 });
 var upload = multer({storage:storage}).single('file');
@@ -64,9 +71,84 @@ router.post('/createdir', function(req, res, next){
     }
 });
 
+router.post('/sharefile', function(req, response, next){
+    if(req.session && req.session.user){
+        reqData = req.body.arr;
+        var grpId = uuidv4();
+        var shrdir = "insert into user_group(group_id, owner_id, permission)  values ('"+grpId+"','"+req.session.user[0].user_id+"','2')";
+
+        var val = [];
+        var values = [];
+        console.log(reqData.length);
+
+        for(var i=0; i<reqData.length; i++)
+            val.push([reqData[i].email]);
+
+        mysql.sqlGetUser(function (err, res) {
+            console.log("barobar");
+            console.log(res);
+            mysql.fetchData(function (err, results) {
+                for(var i=0; i<res.length; i++){
+                    values.push([grpId, res[i].user_id, '1']);
+                }
+                console.log(values);
+                mysql.sqlGroup(function(err, resp){
+                    console.log("kool");
+                    var reqName = req.body.name;
+                    var reqParent = req.body.parentId;
+                    //if(!reqParent){
+                        var createdir = " update file_table set group_id ='"+grpId+"' where file_id ='"+req.body.fileId+"'";
+                    //}
+                    // else{
+                    //     var createdir = " update file_table(owner_id, group_id, parent_id, name) values('"+req.session.user[0].user_id+"','"+grpId+"','"+reqParent+"','"+reqName+"')";
+                    //
+                    // }
+                    mysql.fetchData(function(err, ress){
+                        console.log("done");
+                        response.status(201).json({message:"file shared"});
+                    }, createdir);
+                }, values)
+            }, shrdir);
+
+        }, val);
+    }
+    else{
+        response.status(401).json({message:"session expired"});
+    }
+});
+
+// router.post('/showmembers'){
+//     if(req.session && req.session.user){
+//         //reqData = req.body.flag;
+//         if(req.body.flag == "flie"){
+//             var qry = "select dropbox_users.firstname, dropbox_users.lastname, dropbox_users.email from user_group inner join dropbox_users on user_group.owner_id=dropbox_users.user_id where group_id = '"+req.body.grpId+"'";
+//         }
+//     }
+// }
 
 
-router.post('/sharedir', function(req, res, next){
+router.post('/listfiles', function(req,response, next){
+   if(req.session && req.session.user){
+       if(!req.body.dirId){
+            var getFiles = "select * from file_table where owner_id = '"+req.session.user[0].user_id+"' and dir_id = '1'";
+           var getDirs = "select * from dir_table where owner_id = '"+req.session.user[0].user_id+"'";
+            mysql.fetchData(function(err, res1){
+                mysql.fetchData(function (err, res2) {
+                    res1.push(res2);
+                    response.status(201).json(res1);
+                }, getDirs);
+            },getFiles)
+       }
+       else{
+           var getFiles = "select * from file_table where dir_id = '"+req.body.dirId+"' and owner_id = '"+req.session.user[0].user_id+"'";
+           mysql.fetchData(function(err, res){
+               response.status(201).json(res);
+           }, getFiles);
+       }
+   }
+});
+
+router.post('/sharedir', function(req, response, next){
     if(req.session && req.session.user){
         reqData = req.body.arr;
         var grpId = uuidv4();
@@ -105,6 +187,7 @@ router.post('/sharedir', function(req, res, next){
                         }
                         mysql.fetchData(function(err, ress){
                             console.log("done");
+                            response.status(201).json({message:"Shared directory created"});
                         }, createdir);
                         }, values)
                 }, shrdir);
@@ -140,7 +223,10 @@ router.post('/sharedir', function(req, res, next){
         //     }
         // },values)
     }
-})
+    else{
+        response.status(401).json({message:"session expired"});
+    }
+});
 
 router.get('/filedownload', function(req, res, next){
     if(req.session && req.session.user){
