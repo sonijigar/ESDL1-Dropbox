@@ -131,6 +131,29 @@ function sqlGroup(callback, values){
     });
 }
 
+function mysqlGroup(callback, values){
+    pool.getConnection(function (err, connection) {
+        if(err){
+            connection.release();
+            throw err;
+        }
+        connection.query('INSERT INTO user_group (group_id, owner_id, permission, name) VALUES ?', [values], function(err,row, fields) {
+            connection.release();
+            if(err) {
+                console.log(values);
+            }
+            else {
+                console.log('Success');
+                callback(err,"yes");
+            }
+        });
+        connection.on('error',function(err){
+            throw err;
+            return;
+        });
+    });
+}
+
 function insertData(callback,sqlData){
 
     //var connection=getConnection();
@@ -198,3 +221,4 @@ exports.insertData=insertData;
 exports.sqlGroup=sqlGroup;
 exports.sqlGetUser = sqlGetUser;
 exports.getUsers = getUsers;
+exports.mysqlGroup=mysqlGroup;
