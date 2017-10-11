@@ -52,7 +52,7 @@ app.use(expressSessions({
     resave: false,
     saveUninitialized: false,
     duration: 30 * 60 * 1000,
-    activeDuration: 5 * 6 * 1000,
+    activeDuration: 5 * 60 * 1000,
     store: sessionStore
 }))
 
