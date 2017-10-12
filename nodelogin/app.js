@@ -51,16 +51,19 @@ app.use(expressSessions({
     secret: 'eg[isfd-8yF9-7w2315df{}+Ijsli;;to8',
     resave: false,
     saveUninitialized: false,
-    duration: 30 * 60 * 1000,
+    duration: 60 * 60 * 1000,
     activeDuration: 5 * 60 * 1000,
-    store: sessionStore
-}))
+    store: sessionStore,
+    cookie:{
+        maxAge:60*60*1000
+    }
+}));
 
 // app.use(session({
 //     cookieName:'session',
 //     secret: 'eg[isfd-8yF9-7w2315df{}+Ijsli;;to8',
-//     duration: 30*60*1000,
-//     activeDuration: 5*60*1000,
+//     expires: 6*1000,
+//     activeDuration: 1,
 //     httpOnly: true,
 //     secure: true,
 //     ephemeral: true

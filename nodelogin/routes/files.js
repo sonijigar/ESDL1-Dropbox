@@ -33,8 +33,9 @@ router.get('/', function (req, res, next) {
 });
 
 //creates directory for a user based on parent id
-router.post('/createdir', function(req, res, next){
+router.post('/createdir', function(req, response, next){
     if(req.session && req.session.user){
+        console.log(req.session.user);
         //var reqParent = null;
 
         var reqName = req.body.name;
@@ -55,20 +56,44 @@ router.post('/createdir', function(req, res, next){
         }
         else{
             var reqParent = req.body.parentId;
-            var createdir = " insert into dir_table(owner_id, parent_id, name) values('"+req.session.user[0].user_id+"','"+reqParent+"','"+reqName+"')";
+            var checkSharing = "select group_id from dir_table where dir_id = '"+reqParent+"'";
+            mysql.fetchData(function(err,res){
+                if(res.length>0){
+                    var createdir = " insert into dir_table(owner_id, parent_id, name, group_id) values('"+req.session.user[0].user_id+"','"+reqParent+"','"+reqName+"','"+res[0].group_id+"')";
+                    mysql.fetchData(function(err, results){
+                        if(err){
+                            console.log("wrong query");
+                        }
+                        else{
+                            response.status(201).json({message:"directory created successfully"});
+                        }
+                    }, createdir);
+                }
+                else{
+                    var createdir = " insert into dir_table(owner_id, parent_id, name) values('"+req.session.user[0].user_id+"','"+reqParent+"','"+reqName+"')";
+                    mysql.fetchData(function(err, results){
+                        if(err){
+                            console.log("wrong query");
+                        }
+                        else{
+                            response.status(201).json({message:"directory created successfully"});
+                        }
+                    }, createdir);
+                }
+            }, checkSharing);
         }
 
-        mysql.fetchData(function(err, results){
-            if(err){
-                console.log("wrong query");
-            }
-            else{
-                res.status(201).json({message:"directory created successfully"});
-            }
-        }, createdir);
+        // mysql.fetchData(function(err, results){
+        //     if(err){
+        //         console.log("wrong query");
+        //     }
+        //     else{
+        //         res.status(201).json({message:"directory created successfully"});
+        //     }
+        // }, createdir);
     }
     else{
-        res.status(401).json({message:"sessions problem"});
+        response.status(401).json({message:"sessions problem"});
     }
 });
 
@@ -87,31 +112,72 @@ router.post('/sharefile', function(req, response, next){
         for(var i=0; i<reqData.length; i++)
             val.push([reqData[i].email]);
 
-        mysql.sqlGetUser(function (err, res) {
+        mysql.sqlGetUser(function (err, rest) {
             console.log("barobar");
-            console.log(res);
-            mysql.fetchData(function (err, results) {
-                for(var i=0; i<res.length; i++){
-                    values.push([grpId, res[i].user_id, '1']);
+            console.log(rest);
+            var checkShared = "select group_id from file_table where file_id = '"+req.body.fileId+"'";
+            mysql.fetchData(function(err, res){
+                console.log(res[0].group_id);
+                if(res[0].group_id != null){
+                    grpId = res[0].group_id;
+                    //var shrdir = "insert into user_group(group_id, owner_id, permission)  values ('"+grpId+"','"+req.session.user[0].user_id+"','2')";
+                    //mysql.fetchData(function (err, results) {
+                        for(var i=0; i<rest.length; i++){
+                            values.push([grpId, rest[i].user_id, '1']);
+                        }
+                        console.log(values);
+                        mysql.sqlGroup(function(err, resp){
+                            console.log("kool");
+                            var reqName = req.body.name;
+                            var reqParent = req.body.parentId;
+                            //if(!reqParent){
+
+                            var createdir = " update file_table set group_id ='"+grpId+"' where file_id ='"+req.body.fileId+"'";
+                            mysql.fetchData(function(err, ress){
+                                var getFileName = "select name from file_table where file_id = '"+req.body.fileId+"'";
+                                mysql.fetchData(function (err, res1) {
+                                    console.log(res1);
+                                    var fileHistory = "insert into activity_history(file_id, name, activity, user_id) values ('"+req.body.fileId+"','"+res1[0].name+"','2','"+req.session.user[0].user_id+"')";
+                                    mysql.fetchData(function (err, res) {
+                                        console.log("done");
+                                        response.status(201).json({message:"file shared"});
+                                    }, fileHistory)
+                                }, getFileName);
+
+                            }, createdir);
+                        }, values)
+                    //}, shrdir);
+                        }
+                        else{
+                    mysql.fetchData(function (err, results) {
+                        for(var i=0; i<rest.length; i++){
+                            values.push([grpId, rest[i].user_id, '1']);
+                        }
+                        console.log(values);
+                        mysql.sqlGroup(function(err, resp){
+                            console.log("kool");
+                            var reqName = req.body.name;
+                            var reqParent = req.body.parentId;
+                            //if(!reqParent){
+
+                            var createdir = " update file_table set group_id ='"+grpId+"' where file_id ='"+req.body.fileId+"'";
+                            mysql.fetchData(function(err, ress){
+                                var getFileName = "select name from file_table where file_id = '"+req.body.fileId+"'";
+                                mysql.fetchData(function (err, res1) {
+                                    console.log(res1);
+                                    var fileHistory = "insert into activity_history(file_id, name, activity, user_id) values ('"+req.body.fileId+"','"+res1[0].name+"','2','"+req.session.user[0].user_id+"')";
+                                    mysql.fetchData(function (err, res) {
+                                        console.log("done");
+                                        response.status(201).json({message:"file shared"});
+                                    }, fileHistory)
+                                }, getFileName);
+
+                            }, createdir);
+                        }, values)
+                    }, shrdir);
                 }
-                console.log(values);
-                mysql.sqlGroup(function(err, resp){
-                    console.log("kool");
-                    var reqName = req.body.name;
-                    var reqParent = req.body.parentId;
-                    //if(!reqParent){
-                        var createdir = " update file_table set group_id ='"+grpId+"' where file_id ='"+req.body.fileId+"'";
-                    //}
-                    // else{
-                    //     var createdir = " update file_table(owner_id, group_id, parent_id, name) values('"+req.session.user[0].user_id+"','"+grpId+"','"+reqParent+"','"+reqName+"')";
-                    //
-                    // }
-                    mysql.fetchData(function(err, ress){
-                        console.log("done");
-                        response.status(201).json({message:"file shared"});
-                    }, createdir);
-                }, values)
-            }, shrdir);
+            }, checkShared);
+
 
         }, val);
     }
@@ -175,38 +241,63 @@ router.get('/showgroup', function(req, resp){
    }
 });
 
-//delete directory
+// //delete directory
 // router.post('/deldir', function(req, response){
 //     if(req.session && req.session.user){
-//         var getStar = "select * from star where dir_id = '"+req.body.fileId+"'";
+//         var delStar = "delete from star where dir_id = '"+req.body.dirId+"'";
+//         mysql.fetchData(function(err, res){
+//             var delGroup = "delete from user_group where group_id = '" + result[0].group_id + "'";
+//             mysql.fetchData(function(err, res){
+//                 var selFiles = "delete from file_table where dir_id = '"+req.body.dirId+"'";
+//                 mysql.fetchData(function(err, res){
+//                     var delDirs = "delete from dir_table where parent_id = '"+req.body.dirId+"'";
+//                     mysql.fetchData(function(err, res){
+//                         var delDir = "delete from dir_table where dir_id = '" + req.body.dirId + "'";
+//                         mysql.fetchData(function (err, res) {
+//                             if (err) {
+//                                 throw err;
+//                             }
+//                             else {
+//                                 response.status(201).json({message: "directory deleted"});
+//                             }
+//                         }, delFile);
+//                     })
+//                 }, selFiles);
+//             },delGroup);
+//         }, delStar);
+//     }
+// });
+
+// //delete directory
+// router.post('/deldir', function(req, response){
+//     if(req.session && req.session.user){
+//         var dir = req.body.dirId;
+//         var getStar = "select * from star where dir_id = '"+req.body.dirId+"'";
 //         mysql.fetchData(function(err, res){
 //             if(res.length > 0){
-//                 var delStar = "delete from star where dir_id = '"+req.body.dirId+"'";
+//                 var delStar = "delete from star where dir_id = '"+dir+"'";
 //                 mysql.fetchData(function(err, res){
 //                     console.log("entries from star table deleted");
-//                     var getGroupId = "select group_id from dir_table where dir_id = '"+req.body.dirId+"'";
+//                     var getGroupId = "select group_id from dir_table where dir_id = '"+dir+"'";
 //                     mysql.fetchData(function(err, result){
 //                         if(result[0].group_id != null) {
 //                             var delGroup = "delete from user_group where group_id = '" + result[0].group_id + "'";
 //                             mysql.fetchData(function (err, results) {
-//                                 var selFiles = "select file_id from file_table where parent_id = '"+req.body.dirId+"'";
-//
-//
-//
-//
-//
-//
-//
-//
-//                                 var delFile = "delete from file_table where file_id = '" + req.body.fileId + "'";
-//                                 mysql.fetchData(function (err, res) {
-//                                     if (err) {
-//                                         throw err;
-//                                     }
-//                                     else {
-//                                         response.status(201).json({message: "file deleted"});
-//                                     }
-//                                 }, delFile);
+//                                 var selFiles = "delete from file_table where dir_id = '"+dir+"'";
+//                                 mysql.fetchData(function(err, res){
+//                                     var delDirs = "delete from dir_table where parent_id = '"+dir+"'";
+//                                     mysql.fetchData(function(err, res){
+//                                         var delDir = "delete from dir_table where dir_id = '" +dir+ "'";
+//                                         mysql.fetchData(function (err, res) {
+//                                             if (err) {
+//                                                 throw err;
+//                                             }
+//                                             else {
+//                                                 response.status(201).json({message: "file deleted"});
+//                                             }
+//                                         }, delFile);
+//                                     })
+//                                 }, selFiles);
 //                             }, delGroup);
 //                         }
 //                         else{
@@ -225,12 +316,12 @@ router.get('/showgroup', function(req, resp){
 //                 }, delStar);
 //             }
 //             else{
-//                 var getGroupId = "select group_id from file_table where file_id = '"+req.body.fileId+"'";
+//                 var getGroupId = "select group_id from dir_table where file_id = '"+req.body.dirId+"'";
 //                 mysql.fetchData(function(err, result){
 //                     if(result[0].group_id != null) {
 //                         var delGroup = "delete from user_group where group_id = '" + result[0].group_id + "'";
 //                         mysql.fetchData(function (err, results) {
-//                             var delFile = "delete from file_table where file_id = '" + req.body.fileId + "'";
+//                             var delFile = "delete from dir_table where file_id = '" + req.body.fileId + "'";
 //                             mysql.fetchData(function (err, res) {
 //                                 if (err) {
 //                                     throw err;
@@ -260,6 +351,111 @@ router.get('/showgroup', function(req, resp){
 //         response.status(401).json({message:"Session Expired"});
 //     }
 // });
+
+// function deleteFolder(folderId){
+//     var checkFolder = "select dir_id "
+// }
+
+//delete directory
+router.post('/deldir', function(req, response){
+    if(req.session && req.session.user){
+        var getStar = "select * from star where dir_id = '"+req.body.dirId+"'";
+        mysql.fetchData(function(err, res){
+            if(res.length > 0){
+                var delStar = "delete from star where dir_id = '"+req.body.dirId+"'";
+                mysql.fetchData(function(err, res){
+                    console.log("all the entries from star table deleted");
+                    var getGroupId = "select group_id from dir_table where dir_id = '"+req.body.dirId+"'";
+                    mysql.fetchData(function(err, result){
+                        if(result[0].group_id != null) {
+                            var delGroup = "delete from user_group where group_id = '" + result[0].group_id + "'";
+                            mysql.fetchData(function (err, results) {
+                                var selFiles = "delete from file_table where dir_id = '"+req.body.dirId+"'";
+                                mysql.fetchData(function(err, res){
+                                    var delDirs = "delete from dir_table where parent_id = '"+req.body.dirId+"'";
+                                    mysql.fetchData(function(err, res){
+                                        var delDir = "delete from dir_table where dir_id = '" +req.body.dirId+ "'";
+                                        mysql.fetchData(function (err, res) {
+                                            if (err) {
+                                                throw err;
+                                            }
+                                            else {
+                                                response.status(201).json({message: "folder deleted"});
+                                            }
+                                        }, delDir);
+                                    },delDirs)
+                                }, selFiles);
+                            }, delGroup);
+                        }
+                        else{
+                            var selFiles = "delete from file_table where dir_id = '"+req.body.dirId+"'";
+                            mysql.fetchData(function(err, res){
+                                var delDirs = "delete from dir_table where parent_id = '"+req.body.dirId+"'";
+                                mysql.fetchData(function(err, res){
+                                    var delDir = "delete from dir_table where dir_id = '" +req.body.dirId+ "'";
+                                    mysql.fetchData(function (err, res) {
+                                        if (err) {
+                                            throw err;
+                                        }
+                                        else {
+                                            response.status(201).json({message: "file deleted"});
+                                        }
+                                    }, delDir);
+                                }, delDirs);
+                            }, selFiles);
+                        }
+                    }, getGroupId);
+
+                }, delStar);
+            }
+            else{
+                var getGroupId = "select group_id from dir_table where dir_id = '"+req.body.dirId+"'";
+                mysql.fetchData(function(err, result){
+                    if(result[0].group_id != null) {
+                        var delGroup = "delete from user_group where group_id = '" + result[0].group_id + "'";
+                        mysql.fetchData(function (err, results) {
+                            var selFiles = "delete from file_table where dir_id = '"+req.body.dirId+"'";
+                            mysql.fetchData(function(err, res){
+                                var delDirs = "delete from dir_table where parent_id = '"+req.body.dirId+"'";
+                                mysql.fetchData(function(err, res){
+                                    var delDir = "delete from dir_table where dir_id = '" +req.body.dirId+ "'";
+                                    mysql.fetchData(function (err, res) {
+                                        if (err) {
+                                            throw err;
+                                        }
+                                        else {
+                                            response.status(201).json({message: "file deleted"});
+                                        }
+                                    }, delDir);
+                                }, delDirs)
+                            }, selFiles);
+                        }, delGroup);
+                    }
+                    else{
+                        var selFiles = "delete from file_table where dir_id = '"+dir+"'";
+                        mysql.fetchData(function(err, res){
+                            var delDirs = "delete from dir_table where parent_id = '"+dir+"'";
+                            mysql.fetchData(function(err, res){
+                                var delDir = "delete from dir_table where dir_id = '" +dir+ "'";
+                                mysql.fetchData(function (err, res) {
+                                    if (err) {
+                                        throw err;
+                                    }
+                                    else {
+                                        response.status(201).json({message: "file deleted"});
+                                    }
+                                }, delDir);
+                            }, delDirs);
+                        }, selFiles);
+                    }
+                }, getGroupId);
+            }
+        },getStar);
+    }
+    else{
+        response.status(401).json({message:"Session Expired"});
+    }
+});
 
 //delete file
 router.post('/delfile', function(req, response){
@@ -433,8 +629,12 @@ router.post('/listfiles', function(req,response, next){
        }
        else{
            var getFiles = "select * from file_table where dir_id = '"+req.body.dirId+"' and owner_id = '"+req.session.user[0].user_id+"'";
-           mysql.fetchData(function(err, res){
-               response.status(201).json(res);
+           var getSubdirs = "select * from dir_table where parent_id = '"+req.body.dirId+"'";
+           mysql.fetchData(function(err, res1){
+               mysql.fetchData(function(err, res2){
+                   res1.push(res2);
+                   response.status(201).json(res1);
+               }, getSubdirs);
            }, getFiles);
        }
    }
@@ -617,6 +817,20 @@ router.post('/unstar', function(req, res, next) {
         res.status(401).json({message:"session expired"});
     }
 });
+
+//user activity
+router.get('/useractivity', function(req, response, next){
+    if(req.session && req.session.user){
+        var getActivity = "select * from activity_history where user_id = '"+req.session.user[0].user_id+"' order by time_stamp desc";
+        mysql.fetchData(function(err, res){
+            console.log("file history");
+            response.status(401).json(res);
+        }, getActivity);
+    }
+    else{
+        response.status(201).json({message:"Session expired"});
+    }
+})
 
 //uploads a single file
 router.post('/fileupload', function(req, res, next){

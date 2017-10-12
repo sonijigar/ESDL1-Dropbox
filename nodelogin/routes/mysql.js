@@ -22,6 +22,35 @@ var pool = mysql.createPool({
 //     return connection;
 // }
 
+function fetchData1(callback,sqlQuery){
+
+    console.log("\nSQL Query::"+sqlQuery);
+
+    //var connection=getConnection();
+
+    pool.getConnection(function(err, connection){
+        if(err){
+            connection.release();
+            throw err;
+        }
+        connection.query(sqlQuery, function(err, rows, fields) {
+            connection.release();
+            if(err){
+                console.log("ERROR: " + err.message);
+            }
+            else
+            {	// return err or result
+                console.log("DB Results:"+rows);
+                callback(err, "ok");
+            }
+        });
+        connection.on('error', function(err){
+            throw err;
+            return;
+        });
+    });
+}
+
 function fetchData(callback,sqlQuery){
 
     console.log("\nSQL Query::"+sqlQuery);
@@ -196,27 +225,54 @@ function insertData(callback,sqlData){
 
 function addFileToDb(req, dir, name, content, type, ownerId){
     console.log("Insertion succcessful");
-    var addFile = "insert into file_table( dir_id, owner_id, name, type, content) values ('"+dir+"','"+ownerId+"','"+name+"','"+type+"','"+content+"')";
-    insertData(function(err,results){
-        if(err){
-            throw err;
-            console.log("error");
-        }
-        else
-        {
-            var fileActivity = "insert into file_history (user_id, file_id, activity) values ('"+req.session.user[0].user_id+"','"+results.insertId+"','1')"
-            fetchData(function(err, res){
-                console.log("File history");
-            },fileActivity)
+    var checkSharing = "select group_id from dir_table where dir_id = '"+dir+"'";
+    fetchData(function(err, res){
+        if(res[0].group_id != null) {
+            var addFile = "insert into file_table( dir_id, owner_id, name, type, content, group_id) values ('" + dir + "','" + ownerId + "','" + name + "','" + type + "','" + content + "', '"+res[0].group_id+"')";
+            insertData(function (err, results) {
+                if (err) {
+                    throw err;
+                    console.log("error");
+                }
+                else {
+                    var fileActivity = "insert into activity_history (user_id, file_id, activity, name) values ('" + req.session.user[0].user_id + "','" + results.insertId + "','1','" + name + "')"
+                    fetchData(function (err, res) {
+                        console.log("File history");
+                    }, fileActivity)
 
-            //console.log(results);
-            console.log("Insertion succcessful");
+                    //console.log(results);
+                    console.log("Insertion succcessful");
+                }
+            }, addFile);
         }
-    },addFile);
+        else{
+            var addFile = "insert into file_table( dir_id, owner_id, name, type, content) values ('"+dir+"','"+ownerId+"','"+name+"','"+type+"','"+content+"')";
+            insertData(function(err,results){
+                if(err){
+                    throw err;
+                    console.log("error");
+                }
+                else
+                {
+                    var fileActivity = "insert into activity_history (user_id, file_id, activity, name) values ('"+req.session.user[0].user_id+"','"+results.insertId+"','1','"+name+"')"
+                    fetchData(function(err, res){
+                        console.log("File history");
+                    },fileActivity)
+
+                    //console.log(results);
+                    console.log("Insertion succcessful");
+                }
+            },addFile);
+        }
+    },checkSharing);
+
+
+
 }
 
 exports.addFileToDb = addFileToDb;
 exports.fetchData=fetchData;
+exports.fetchData1=fetchData1;
 exports.insertData=insertData;
 exports.sqlGroup=sqlGroup;
 exports.sqlGetUser = sqlGetUser;

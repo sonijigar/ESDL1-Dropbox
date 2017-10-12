@@ -11,7 +11,7 @@ dropbox_users
 user_group
 dir_table
 file_table
-file_history
+avtivity_history
 star
 
 queries::
@@ -23,6 +23,6 @@ queries::
 
 4. create table file_table(file_id INT AUTO_INCREMENT PRIMARY KEY, dir_id INT, owner_id INT, name varchar(200), type varchar(50), content varchar(500), group_id varchar(200), time_stamp timestamp, FOREIGN KEY (dir_id) REFERENCES dir_table(dir_id), FOREIGN KEY (owner_id) REFERENCES dropbox_users(user_id), FOREIGN KEY (group_id) REFERENCES user_group(group_id);
 
-5. create table file_history(file_id int , activity int(1), time_stamp timestamp, user_id int,  foreign key (user_id) references dropbox_users(user_id), foreign key (file_id) references file_table(file_id));
+5. create table activity_history(file_id int , name varchar(200), activity int(1), time_stamp timestamp, user_id int,  foreign key (user_id) references dropbox_users(user_id));
 
 6. create table star(user_id int, dir_id int, file_id int, FOREIGN KEY(user_id) REFERENCES dropbox_users(user_id), FOREIGN KEY(dir_id) REFERENCES dir_table(dir_id), FOREIGN KEY(file_id) REFERENCES file_table(file_id));
