@@ -11,10 +11,9 @@ export const doSignUp = (payload) =>
             ...headers,
             'Content-Type':'application/json'
         },
-        credentials:'include',
         body:JSON.stringify(payload)
     }).then(res => {
-        return res.status;
+        return res;
     })
         .catch(error => {
             console.log("This is error");
@@ -44,12 +43,37 @@ export const doLogin = (payload) =>
             ...headers,
             'Content-Type': 'application/json'
         },
-        credentials:'include',
         body: JSON.stringify(payload)
     }).then(res => {
-        return res.status;
+        return res.json();
     })
         .catch(error => {
             console.log("This is error");
             return error;
         });
+export const showFiles = (payload) =>
+    fetch(`${api}/files/listfiles`,{
+        method: 'POST',
+        headers:{
+            ...headers,
+            'Accept':'application/json',
+            'Content-Type':'application/json'
+        },
+        body: JSON.stringify(payload)
+    }).then(res => {
+        return res.json();
+    }).catch(error => {
+        console.log("This is Error");
+        return error;
+    });
+
+export const uploadFile = (payload) =>
+    fetch(`${api}/files/fileupload`, {
+        method: 'POST',
+        body: payload
+    }).then(res => {
+        return res.status;
+}).catch(error => {
+    console.log("This is error");
+return error;
+});

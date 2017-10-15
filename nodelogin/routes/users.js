@@ -90,7 +90,8 @@ router.post('/doSignUp', function (req, res, next) {
         }
         else
         {
-            if(results.length > 0){
+            //console.log(results.length);
+            if(results.insertId){
                 req.session.user = results;
                 res.status(201).json({message:"Signup successful"});
             }
@@ -140,14 +141,17 @@ router.post('/doLogin', function (req, res, next) {
                 if (results[0].password == password.passwordHash) {
                     req.session.user = results;
                     delete req.session.user[0].password;
-                    res.status(201).json({message: "Login successful"});
+                    res.json(results[0]);
 
+                }
+                else{
+                    res.json({message:"password not found"});
                 }
                 // console.log("something wrong");
             }
             else{
                 req.session.destroy();
-                res.status(401).json({message: "Login failed"});
+                res.json({message: "Login failed"});
             }
         }
     },getUser);

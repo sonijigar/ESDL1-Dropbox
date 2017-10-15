@@ -237,7 +237,7 @@ function addFileToDb(req, dir, name, content, type, ownerId){
                 else {
                     var fileActivity = "insert into activity_history (user_id, file_id, activity, name) values ('" + req.session.user[0].user_id + "','" + results.insertId + "','1','" + name + "')"
                     fetchData(function (err, res) {
-                        console.log("File history");
+                        console.log("File.js history");
                     }, fileActivity)
 
                     //console.log(results);
@@ -256,7 +256,7 @@ function addFileToDb(req, dir, name, content, type, ownerId){
                 {
                     var fileActivity = "insert into activity_history (user_id, file_id, activity, name) values ('"+req.session.user[0].user_id+"','"+results.insertId+"','1','"+name+"')"
                     fetchData(function(err, res){
-                        console.log("File history");
+                        console.log("File.js history");
                     },fileActivity)
 
                     //console.log(results);

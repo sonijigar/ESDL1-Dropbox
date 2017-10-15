@@ -616,10 +616,10 @@ router.post('/delmember', function(req, res){
 
 //lists all the files and directories in home or main folder
 router.post('/listfiles', function(req,response, next){
-   if(req.session && req.session.user){
+   //if(req.session && req.session.user){
        if(!req.body.dirId){
-            var getFiles = "select * from file_table where owner_id = '"+req.session.user[0].user_id+"' and dir_id = '1'";
-           var getDirs = "select * from dir_table where owner_id = '"+req.session.user[0].user_id+"'";
+            var getFiles = "select * from file_table where owner_id = '"+10+"' and dir_id = '1'";
+           var getDirs = "select * from dir_table where owner_id = '"+10+"'";
             mysql.fetchData(function(err, res1){
                 mysql.fetchData(function (err, res2) {
                     res1.push(res2);
@@ -637,7 +637,7 @@ router.post('/listfiles', function(req,response, next){
                }, getSubdirs);
            }, getFiles);
        }
-   }
+   //}
 });
 
 //first asks emails of group members and creates shared directory

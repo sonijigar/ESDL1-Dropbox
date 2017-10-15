@@ -8,13 +8,13 @@ class Login extends Component {
     };
 
     state = {
-        username: '',
+        email: '',
         password: ''
     };
 
     componentWillMount(){
         this.setState({
-            username: '',
+            email: '',
             password: ''
         });
     }
@@ -36,7 +36,7 @@ class Login extends Component {
                                 value={this.state.username}
                                 onChange={(event) => {
                                     this.setState({
-                                        username: event.target.value
+                                        email: event.target.value
                                     });
                                 }}
                             />
@@ -60,8 +60,8 @@ class Login extends Component {
                             <button
                                 className="btn btn-primary"
                                 type="button"
-                                onClick={() => this.props.handleSubmit(this.state)}>
-                                Submit
+                                onClick={() =>this.props.handleSubmit(this.state)}>
+                                 Submit
                             </button>
                         </div>
                     </form>

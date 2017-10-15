@@ -4,9 +4,9 @@ import './App.css';
 // import HomePage from "./components/HomePage";
 // import NewHomePage from "./components/NewHomePage";
 
-import {BrowserRouter} from 'react-router-dom';
+//import {BrowserRouter} from 'react-router-dom';
 import NewerHomePage from "./components/NewerHomePage";
-
+import Header from "./components/HeaderPage";
 
 // import HomePage from "./components/HomePage";
 
@@ -16,9 +16,8 @@ import NewerHomePage from "./components/NewerHomePage";
                 <div className="App">
                     {/*<HomePage/>*/}
                     {/*<NewHomePage/>*/}
-                    <BrowserRouter>
-                        <NewerHomePage/>
-                    </BrowserRouter>
+                    <Header/>
+                    <NewerHomePage/>
                 </div>
             );
         }
