@@ -3,7 +3,7 @@ var mysql = require('./mysql');
 var crypto = require('crypto');
 var session = require('express-session');
 var router = express.Router();
-
+var CryptoJs = require('crypto-js');
 
 // function check(req, res, next){
 //     if(req.session && req.session.user){

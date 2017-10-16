@@ -457,6 +457,126 @@ router.post('/deldir', function(req, response){
     }
 });
 
+function delFolder(did, response){
+    var checkChild = "select * from dir_table where parent_id = '"+did+"'";
+    mysql.fetchData(function(err, res){
+        if(res.length>0){
+            console.log(res);
+            for(i=0; i<res.length; i++){
+                delFolder(res[i].dir_id);
+            }
+        }
+        else{
+            var getStar = "select * from star where dir_id = '"+did+"'";
+            mysql.fetchData(function(err, res){
+                if(res.length > 0){
+                    var delStar = "delete from star where dir_id = '"+did+"'";
+                    mysql.fetchData(function(err, res){
+                        console.log("all the entries from star table deleted");
+                        var getGroupId = "select group_id from dir_table where dir_id = '"+did+"'";
+                        mysql.fetchData(function(err, result){
+                            if(result[0].group_id != null) {
+                                var delGroup = "delete from user_group where group_id = '" + result[0].group_id + "'";
+                                mysql.fetchData(function (err, results) {
+                                    var selFiles = "delete from file_table where dir_id = '"+did+"'";
+                                    mysql.fetchData(function(err, res){
+                                        var delDirs = "delete from dir_table where parent_id = '"+did+"'";
+                                        mysql.fetchData(function(err, res){
+                                            var delDir = "delete from dir_table where dir_id = '" +did+ "'";
+                                            mysql.fetchData(function (err, res) {
+                                                if (err) {
+                                                    throw err;
+                                                }
+                                                else {
+                                                    return true;
+                                                }
+                                            }, delDir);
+                                        },delDirs)
+                                    }, selFiles);
+                                }, delGroup);
+                            }
+                            else{
+                                var selFiles = "delete from file_table where dir_id = '"+did+"'";
+                                mysql.fetchData(function(err, res){
+                                    var delDirs = "delete from dir_table where parent_id = '"+did+"'";
+                                    mysql.fetchData(function(err, res){
+                                        var delDir = "delete from dir_table where dir_id = '" +did+ "'";
+                                        mysql.fetchData(function (err, res) {
+                                            if (err) {
+                                                throw err;
+                                            }
+                                            else {
+                                                return true;
+                                            }
+                                        }, delDir);
+                                    }, delDirs);
+                                }, selFiles);
+                            }
+                        }, getGroupId);
+
+                    }, delStar);
+                }
+                else{
+                    var getGroupId = "select group_id from dir_table where dir_id = '"+did+"'";
+                    mysql.fetchData(function(err, result){
+                        if(result[0].group_id != null) {
+                            var delGroup = "delete from user_group where group_id = '" + did + "'";
+                            mysql.fetchData(function (err, results) {
+                                var selFiles = "delete from file_table where dir_id = '"+did+"'";
+                                mysql.fetchData(function(err, res){
+                                    var delDirs = "delete from dir_table where parent_id = '"+did+"'";
+                                    mysql.fetchData(function(err, res){
+                                        var delDir = "delete from dir_table where dir_id = '" +did+ "'";
+                                        mysql.fetchData(function (err, res) {
+                                            if (err) {
+                                                throw err;
+                                            }
+                                            else {
+                                                return true;
+                                                //response.status(201).json({message: "directory deleted"});
+                                            }
+                                        }, delDir);
+                                    }, delDirs)
+                                }, selFiles);
+                            }, delGroup);
+                        }
+                        else{
+                            var selFiles = "delete from file_table where dir_id = '"+did+"'";
+                            mysql.fetchData(function(err, res){
+                                var delDirs = "delete from dir_table where parent_id = '"+did+"'";
+                                mysql.fetchData(function(err, res){
+                                    var delDir = "delete from dir_table where dir_id = '" +did+ "'";
+                                    mysql.fetchData(function (err, res) {
+                                        if (err) {
+                                            throw err;
+                                        }
+                                        else {
+                                            return true;
+                                        }
+                                    }, delDir);
+                                }, delDirs);
+                            }, selFiles);
+                        }
+                    }, getGroupId);
+                }
+            },getStar);
+        }
+    }, checkChild)
+}
+
+//delete recursively
+router.post('/delrec', function(req,response){
+    if(req.session && req.session.user){
+        v = delFolder(req.body.dirId, response);
+        if(v){
+            response.status(201).json({message:"Success"});
+        }
+    }
+    else{
+        response.status(401).json({message:"Session Expired"});
+    }
+})
+
 //delete file
 router.post('/delfile', function(req, response){
    if(req.session && req.session.user){
